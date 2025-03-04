@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">數位時鐘</string>
+    <string name="times">時間</string>
+    <string name="setting">設定</string>
+</resources>
