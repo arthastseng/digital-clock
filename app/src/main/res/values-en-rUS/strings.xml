@@ -2,4 +2,6 @@
     <string name="app_name">Digital Clock</string>
     <string name="times">Times</string>
     <string name="setting">Setting</string>
+    <string name="refresh_rate">Refresh Rate</string>
+    <string name="language">Language</string>
 </resources>
