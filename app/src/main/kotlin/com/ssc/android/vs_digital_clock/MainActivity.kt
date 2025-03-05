@@ -21,12 +21,13 @@ class MainActivity : AppCompatActivity() {
 
         replaceFragment(dashBoardFragment)
 
-        binding?.bottomNavigation?.setOnItemReselectedListener { item ->
-            when (item.itemId) {
+        binding?.bottomNavigation?.setOnItemSelectedListener {
+            when (it.itemId) {
                 R.id.bottom_item_time_dash_board -> replaceFragment(dashBoardFragment)
                 R.id.bottom_item_setting -> replaceFragment(settingFragment)
                 else -> replaceFragment(dashBoardFragment)
             }
+            true
         }
     }
 
