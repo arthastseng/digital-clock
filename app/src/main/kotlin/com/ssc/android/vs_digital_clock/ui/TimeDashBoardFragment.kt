@@ -1,13 +1,20 @@
 package com.ssc.android.vs_digital_clock.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.MockDataUtil
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +31,7 @@ class TimeDashBoardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentTimeDashBoardBinding.inflate(inflater, container, false)
+        initActionbar()
         return binding.root
     }
 
@@ -51,6 +59,33 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
+    private fun initActionbar() {
+        // The usage of an interface lets you inject your own implementation
+        val menuHost: MenuHost = requireActivity()
+
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                // Add menu items here
+                menuInflater.inflate(R.menu.menu_time_dash_board, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // Handle the menu selection
+                return when (menuItem.itemId) {
+                    R.id.action_refresh -> {
+                        Log.d(TAG,"refresh action selected")
+                        true
+                    }
+                    R.id.action_language -> {
+                        Log.d(TAG,"language action selected")
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -58,5 +93,6 @@ class TimeDashBoardFragment : Fragment() {
 
     companion object {
         private const val COLUMN_SIZE = 2
+        private const val TAG = "TimeDashBoardFragment"
     }
 }
