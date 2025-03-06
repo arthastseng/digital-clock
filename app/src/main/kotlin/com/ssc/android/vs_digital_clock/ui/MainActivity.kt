@@ -7,7 +7,9 @@ import androidx.fragment.app.Fragment
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.databinding.LayoutMainBinding
 import com.ssc.android.vs_digital_clock.domain.TestViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private var binding: LayoutMainBinding? = null
     private val settingFragment = SettingsFragment()

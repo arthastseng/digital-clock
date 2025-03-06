@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ssc.android.vs_digital_clock.data.MockDataUtil
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TimeDashBoardFragment : Fragment() {
     private var _binding: FragmentTimeDashBoardBinding? = null
     private val binding get() = _binding!!
