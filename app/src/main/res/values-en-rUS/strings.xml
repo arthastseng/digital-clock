@@ -4,4 +4,6 @@
     <string name="setting">Setting</string>
     <string name="refresh_rate">Refresh Rate</string>
     <string name="language">Language</string>
+    <string name="no_data_hint">No Data</string>
+    <string name="region_display_text">%s | %s</string>
 </resources>

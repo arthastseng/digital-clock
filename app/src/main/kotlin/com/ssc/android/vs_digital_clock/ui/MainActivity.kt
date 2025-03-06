@@ -5,8 +5,8 @@ import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.ssc.android.vs_digital_clock.R
-import com.ssc.android.vs_digital_clock.TimeDashBoardFragment
 import com.ssc.android.vs_digital_clock.databinding.LayoutMainBinding
+import com.ssc.android.vs_digital_clock.domain.TestViewModel
 
 class MainActivity : AppCompatActivity() {
     private var binding: LayoutMainBinding? = null
@@ -42,6 +42,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initUI() {
+
+        //TODO test code
+        val viewModel = TestViewModel()
+        viewModel.getAvailableTimeZones()
 
         replaceFragment(dashBoardFragment)
 

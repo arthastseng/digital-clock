@@ -4,4 +4,6 @@
     <string name="setting">設定</string>
     <string name="refresh_rate">更新頻率</string>
     <string name="language">語言</string>
+    <string name="no_data_hint">無資料</string>
+    <string name="region_display_text">%s | %s</string>
 </resources>
