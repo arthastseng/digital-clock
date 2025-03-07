@@ -1,6 +1,5 @@
 package com.ssc.android.vs_digital_clock.ui.setting
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,6 +15,7 @@ import androidx.fragment.app.viewModels
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import com.ssc.android.vs_digital_clock.R
+import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentSettingBinding
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingEvent
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingIntention
@@ -50,6 +50,7 @@ class SettingsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.sendIntention(SettingIntention.FetchTimeZonesFromDB)
     }
 
     private fun initViewModel() {
@@ -97,13 +98,25 @@ class SettingsFragment : Fragment() {
     private fun handleViewStateUpdate(state: SettingViewState) {
         Log.d(TAG, "handleViewStateUpdate: $state")
         when (state) {
-            is SettingViewState.TimeZoneDataReady -> showTimeZoneSelectDialog(data = state.data)
+            is SettingViewState.TimeZoneDataReady ->
+                showTimeZoneSelectDialog(data = state.data)
+
+            is SettingViewState.GetTimeZoneFromDbReady ->
+                handleTimeZoneDatabaseDataReady(data = state.data)
+
+            is SettingViewState.InsertTimeZoneToDbCompleted ->
+                viewModel.sendIntention(SettingIntention.FetchTimeZonesFromDB)
+
             else -> Unit
         }
     }
 
     private fun handleViewModelEvent(event: SettingEvent) {
 
+    }
+
+    private fun handleTimeZoneDatabaseDataReady(data: List<TimeZone>) {
+        Log.d(TAG, "handleTimeZoneDatabaseDataReady: ${data.toString()}")
     }
 
     private fun showTimeZoneSelectDialog(data: List<String>) {
@@ -118,10 +131,16 @@ class SettingsFragment : Fragment() {
         if (timeZoneDialog == null) {
             timeZoneDialog = TimezoneSelectedDialogFragment().also {
                 it.arguments = args
-                it.setDismissListener(object : TimezoneSelectedDialogFragment.DismissListener {
+                it.setDismissListener(object : TimezoneSelectedDialogFragment.DialogEventListener {
                     override fun onDismiss() {
                         viewModel.sendIntention(SettingIntention.Idle)
                         timeZoneDialog = null
+                        viewModel.sendIntention(SettingIntention.FetchTimeZonesFromDB)
+                    }
+
+                    override fun onItemSelected(data: TimeZone) {
+                        Log.d(TAG, "onItemSelected : $data")
+                        viewModel.sendIntention(SettingIntention.AddTimeZone(data = data))
                     }
                 })
             }

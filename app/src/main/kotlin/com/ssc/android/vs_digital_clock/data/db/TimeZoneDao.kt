@@ -12,7 +12,7 @@ interface TimeZoneDao {
     suspend fun getAllTimeZone(): List<TimeZone>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTimeZone(vararg timeZone: TimeZone)
+    suspend fun insertTimeZone(timeZone: TimeZone)
 
     @Delete
     suspend fun deleteTimeZones(timeZones: List<TimeZone>)

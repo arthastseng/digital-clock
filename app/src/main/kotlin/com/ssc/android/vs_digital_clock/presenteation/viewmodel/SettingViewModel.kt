@@ -2,8 +2,11 @@ package com.ssc.android.vs_digital_clock.presenteation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.di.DefaultDispatcher
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchAvailableTimeZoneUseCase
+import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZonesFromDbUseCase
+import com.ssc.android.vs_digital_clock.domain.usecase.InsertTimeZoneToDbUseCase
 import com.ssc.android.vs_digital_clock.presenteation.base.MVIViewModel
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingAction
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingEvent
@@ -17,6 +20,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SettingViewModel @Inject constructor(
     private val fetchAvailableTimeZoneUseCase: FetchAvailableTimeZoneUseCase,
+    private val fetchTimeZonesFromDbUseCase: FetchTimeZonesFromDbUseCase,
+    private val insertTimeZoneToDbUseCase: InsertTimeZoneToDbUseCase,
     @DefaultDispatcher dispatcher: CoroutineDispatcher
 ) : MVIViewModel<SettingIntention, SettingAction, SettingViewState, SettingEvent>(
     defaultDispatcher = dispatcher,
@@ -30,17 +35,32 @@ class SettingViewModel @Inject constructor(
         when (intention) {
             is SettingIntention.Idle -> sendAction(SettingAction.Idle)
             is SettingIntention.PreloadTimeZone -> preloadAvailableTimeZone()
-            is SettingIntention.FetchAvailableTimeZone -> sendAction(SettingAction.FetchAvailableTimeZone)
+            is SettingIntention.FetchAvailableTimeZone -> getAvailableTimeZone()
+            is SettingIntention.FetchTimeZonesFromDB -> fetchTimeZonesFromDatabase()
+            is SettingIntention.AddTimeZone -> insertTimeZoneToDB(data = intention.data)
         }
     }
 
     override suspend fun onReduce(action: SettingAction): SettingViewState {
         Log.d(TAG, "onReduce: $action")
-
         return when (action) {
             is SettingAction.Idle -> return SettingViewState.Idle
-            is SettingAction.FetchAvailableTimeZone -> getAvailableTimeZone()
+            is SettingAction.TimeZoneDataReady -> SettingViewState.TimeZoneDataReady(data = action.data)
+            is SettingAction.FetchTimeZonesFromDBReady -> SettingViewState.GetTimeZoneFromDbReady(
+                data = action.data
+            )
+            is SettingAction.InsertTimeZoneToDbCompleted -> SettingViewState.InsertTimeZoneToDbCompleted
+
             else -> SettingViewState.Idle
+        }
+    }
+
+    private fun fetchTimeZonesFromDatabase() {
+        viewModelScope.launch {
+            val output = fetchTimeZonesFromDbUseCase()
+            if (output is FetchTimeZonesFromDbUseCase.Output.Result) {
+                sendAction(SettingAction.FetchTimeZonesFromDBReady(data = output.data))
+            }
         }
     }
 
@@ -60,13 +80,24 @@ class SettingViewModel @Inject constructor(
         }
     }
 
-    private fun getAvailableTimeZone(): SettingViewState {
+    private fun getAvailableTimeZone() {
         Log.d(TAG, "getAvailableTimeZone: ${timeZones?.toString()}")
+        viewModelScope.launch {
+            timeZones?.let {
+                sendAction(SettingAction.TimeZoneDataReady(data = it))
+            }
 
-        timeZones?.let {
-            return SettingViewState.TimeZoneDataReady(data = it)
+            if (timeZones == null) {
+                sendAction(SettingAction.NoTimeZoneData)
+            }
         }
-        return SettingViewState.NoTimeZoneData
+    }
+
+    private fun insertTimeZoneToDB(data: TimeZone) {
+        viewModelScope.launch {
+            insertTimeZoneToDbUseCase(data = data)
+            sendAction(SettingAction.InsertTimeZoneToDbCompleted)
+        }
     }
 
     override fun onCleared() {

@@ -13,16 +13,18 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ssc.android.vs_digital_clock.R
+import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeZoneListViewBinding
 
 class TimezoneSelectedDialogFragment : DialogFragment() {
     private var _binding: FragmentTimeZoneListViewBinding? = null
     private val binding get() = _binding!!
     private var dataList: List<String>? = null
-    private var dismissListener: DismissListener? = null
+    private var eventListener: DialogEventListener? = null
 
-    interface DismissListener {
+    interface DialogEventListener {
         fun onDismiss()
+        fun onItemSelected(data: TimeZone)
     }
 
     override fun onCreateView(
@@ -76,6 +78,10 @@ class TimezoneSelectedDialogFragment : DialogFragment() {
                 setOnItemClickedListener(object: TimeZoneListAdapter.OnItemClickListener{
                     override fun onItemClicked(data: String) {
                         Log.d(TAG,"onItemClicked: $data")
+                        val timeZone = createTimeZone(timeZoneString = data)
+                        Log.d(TAG,"TimeZone created: ${timeZone.toString()}")
+                        eventListener?.onItemSelected(data = timeZone)
+                        dismiss()
                     }
                 })
             }
@@ -95,13 +101,13 @@ class TimezoneSelectedDialogFragment : DialogFragment() {
         }
     }
 
-    fun setDismissListener(listener: DismissListener) {
-        dismissListener = listener
+    fun setDismissListener(listener: DialogEventListener) {
+        eventListener = listener
     }
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
-        dismissListener?.onDismiss()
+        eventListener?.onDismiss()
     }
 
     private fun initKeyEventListener() {
@@ -114,6 +120,13 @@ class TimezoneSelectedDialogFragment : DialogFragment() {
                 false
             }
         }
+    }
+
+    private fun createTimeZone(timeZoneString: String) : TimeZone {
+        val result = timeZoneString.split("/")
+        val region = result[0]
+        val city = result[1]
+        return TimeZone(indexKey = timeZoneString, region = region, city = city)
     }
 
     companion object {
