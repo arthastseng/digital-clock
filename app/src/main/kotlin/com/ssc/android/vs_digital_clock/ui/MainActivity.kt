@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.databinding.LayoutMainBinding
+import com.ssc.android.vs_digital_clock.ui.dashboard.TimeDashBoardFragment
+import com.ssc.android.vs_digital_clock.ui.setting.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

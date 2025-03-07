@@ -22,28 +22,56 @@ class SettingViewModel @Inject constructor(
     defaultDispatcher = dispatcher,
     initialState = SettingViewState.Idle
 ) {
+
+    private var timeZones: List<String>? = null
+
     override suspend fun onIntention(intention: SettingIntention) {
-        when(intention) {
-            is SettingIntention.Idle -> Unit
-            is SettingIntention.FetchAvailableTimeZone -> fetchAvailableTimeZone()
+        Log.d(TAG, "onIntention: $intention")
+        when (intention) {
+            is SettingIntention.Idle -> sendAction(SettingAction.Idle)
+            is SettingIntention.PreloadTimeZone -> preloadAvailableTimeZone()
+            is SettingIntention.FetchAvailableTimeZone -> sendAction(SettingAction.FetchAvailableTimeZone)
         }
     }
 
     override suspend fun onReduce(action: SettingAction): SettingViewState {
-        TODO("Not yet implemented")
+        Log.d(TAG, "onReduce: $action")
+
+        return when (action) {
+            is SettingAction.Idle -> return SettingViewState.Idle
+            is SettingAction.FetchAvailableTimeZone -> getAvailableTimeZone()
+            else -> SettingViewState.Idle
+        }
     }
 
-    private fun fetchAvailableTimeZone() {
+    private fun preloadAvailableTimeZone() {
         viewModelScope.launch {
-            when(val output = fetchAvailableTimeZoneUseCase()) {
+            when (val output = fetchAvailableTimeZoneUseCase()) {
                 is FetchAvailableTimeZoneUseCase.Output.Success -> {
-                    Log.d(TAG,"fetch time zone success: ${output.data}")
+                    Log.d(TAG, "fetch time zone success: ${output.data}")
+                    timeZones = output.data
                 }
 
-                is FetchAvailableTimeZoneUseCase.Output.Error -> {}
-
+                is FetchAvailableTimeZoneUseCase.Output.Error -> {
+                    Log.e(TAG, "fetch time zone error: ${output.error.errorMsg}")
+                    sendAction(SettingAction.ErrorOccur(error = output.error))
+                }
             }
         }
+    }
+
+    private fun getAvailableTimeZone(): SettingViewState {
+        Log.d(TAG, "getAvailableTimeZone: ${timeZones?.toString()}")
+
+        timeZones?.let {
+            return SettingViewState.TimeZoneDataReady(data = it)
+        }
+        return SettingViewState.NoTimeZoneData
+    }
+
+    override fun onCleared() {
+        timeZones = null
+        super.onCleared()
     }
 
     companion object {

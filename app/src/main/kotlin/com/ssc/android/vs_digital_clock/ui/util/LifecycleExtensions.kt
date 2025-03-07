@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.ui
+package com.ssc.android.vs_digital_clock.ui.util
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle

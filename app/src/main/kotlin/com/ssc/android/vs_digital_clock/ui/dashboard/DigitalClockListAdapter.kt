@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.ui
+package com.ssc.android.vs_digital_clock.ui.dashboard
 
 import android.util.Log
 import android.view.LayoutInflater

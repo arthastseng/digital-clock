@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.ui
+package com.ssc.android.vs_digital_clock.ui.dashboard
 
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.MockDataUtil
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
+import com.ssc.android.vs_digital_clock.ui.dashboard.DigitalClockListAdapter
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -50,9 +51,7 @@ class TimeDashBoardFragment : Fragment() {
         }
 
         binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(context, COLUMN_SIZE).apply {
-                
-            }
+            layoutManager = GridLayoutManager(context, COLUMN_SIZE)
             adapter = digitalClockAdapter
             addItemDecoration(DividerItemDecoration(context,GridLayoutManager.VERTICAL))
             adapter?.notifyDataSetChanged()
