@@ -98,4 +98,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.process)
     kapt(libs.androidx.lifecycle.compiler)
+
+    //Room database
+    implementation(libs.bundles.room)
+    testImplementation(libs.androidx.room.testing)
+    kapt(libs.androidx.room.compiler)
 }
