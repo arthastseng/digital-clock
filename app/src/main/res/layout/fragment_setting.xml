@@ -6,15 +6,22 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:background="@color/teal_200"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <TextView
-            android:id="@+id/title"
+            android:id="@+id/no_data_hint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/setting"
-            android:textColor="@color/white"
+            android:text="@string/no_data_hint"
+            android:textColor="@color/black"
+            android:textSize="@dimen/no_data_hint_font_size"
+            android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

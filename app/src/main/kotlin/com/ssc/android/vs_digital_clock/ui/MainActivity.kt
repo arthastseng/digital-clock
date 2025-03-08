@@ -1,13 +1,15 @@
 package com.ssc.android.vs_digital_clock.ui
 
 import android.os.Bundle
-import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.databinding.LayoutMainBinding
-import com.ssc.android.vs_digital_clock.domain.TestViewModel
+import com.ssc.android.vs_digital_clock.ui.dashboard.TimeDashBoardFragment
+import com.ssc.android.vs_digital_clock.ui.setting.SettingsFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private var binding: LayoutMainBinding? = null
     private val settingFragment = SettingsFragment()
@@ -19,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         binding?.let {
             setSupportActionBar(it.actionBar)
-            it.actionBar.inflateMenu(R.menu.menu_action_bar)
+            it.actionBar.inflateMenu(R.menu.menu_time_dash_board)
         }
 
         val view = binding?.root
@@ -36,36 +38,10 @@ class MainActivity : AppCompatActivity() {
         fragmentTransaction.commit()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_action_bar, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
     private fun initUI() {
-
-        //TODO test code
-        val viewModel = TestViewModel()
-        viewModel.getAvailableTimeZones()
-
         replaceFragment(dashBoardFragment)
 
         binding?.let {
-
-            //setup action bar menu item click listener
-            it.actionBar.setOnMenuItemClickListener { actionItem ->
-                when (actionItem.itemId) {
-                    R.id.action_refresh -> {
-                        //TODO put behavior here
-                    }
-
-                    R.id.action_language -> {
-                        //TODO put behavior here
-                    }
-
-                    else -> Unit
-                }
-                false
-            }
 
             //setup bottom navigation bar select listener.
             it.bottomNavigation.setOnItemSelectedListener { naviItem ->

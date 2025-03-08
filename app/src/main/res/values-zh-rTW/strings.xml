@@ -6,4 +6,7 @@
     <string name="language">語言</string>
     <string name="no_data_hint">無資料</string>
     <string name="region_display_text">%s | %s</string>
+    <string name="add">新增</string>
+    <string name="edit">編輯</string>
+    <string name="delete">刪除</string>
 </resources>
