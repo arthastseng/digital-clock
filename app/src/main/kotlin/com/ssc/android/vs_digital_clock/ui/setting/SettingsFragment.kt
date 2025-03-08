@@ -1,5 +1,6 @@
 package com.ssc.android.vs_digital_clock.ui.setting
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,12 +9,15 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentSettingBinding
@@ -21,6 +25,7 @@ import com.ssc.android.vs_digital_clock.presenteation.state.SettingEvent
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingIntention
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingViewState
 import com.ssc.android.vs_digital_clock.presenteation.viewmodel.SettingViewModel
+import com.ssc.android.vs_digital_clock.ui.setting.edit.SettingEditModeActivity
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -41,6 +46,11 @@ class SettingsFragment : Fragment() {
         initViewModel()
         _binding = FragmentSettingBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initRecyclerView()
     }
 
     override fun onDestroyView() {
@@ -86,6 +96,7 @@ class SettingsFragment : Fragment() {
 
                     R.id.action_edit -> {
                         Log.d(TAG, "edit action selected")
+                        startActivity(Intent(requireContext(), SettingEditModeActivity::class.java))
                         true
                     }
 
@@ -93,6 +104,27 @@ class SettingsFragment : Fragment() {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun initRecyclerView() {
+        val layoutMgr = LinearLayoutManager(context)
+
+        binding.recyclerView.apply {
+            layoutManager = layoutMgr
+            addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+        }
+
+        //custom divider
+        val dividerItemDecoration = DividerItemDecoration(requireContext(), layoutMgr.orientation)
+        val lineDrawable = ContextCompat.getDrawable(
+            requireContext(),
+            R.drawable.shape_list_decoration
+        )
+
+        lineDrawable?.let {
+            dividerItemDecoration.setDrawable(it)
+            binding.recyclerView.addItemDecoration(dividerItemDecoration)
+        }
     }
 
     private fun handleViewStateUpdate(state: SettingViewState) {
@@ -117,6 +149,15 @@ class SettingsFragment : Fragment() {
 
     private fun handleTimeZoneDatabaseDataReady(data: List<TimeZone>) {
         Log.d(TAG, "handleTimeZoneDatabaseDataReady: ${data.toString()}")
+        val selectedTimeZoneListAdapter = SelectedTimeZoneListAdapter().apply {
+            data?.let {
+                setData(it)
+            }
+        }
+        binding.recyclerView.apply {
+            adapter = selectedTimeZoneListAdapter
+            adapter?.notifyDataSetChanged()
+        }
     }
 
     private fun showTimeZoneSelectDialog(data: List<String>) {
@@ -126,12 +167,12 @@ class SettingsFragment : Fragment() {
         data.forEach {
             bundleData.add(it)
         }
-        args.putStringArrayList(TimezoneSelectedDialogFragment.TIME_ZONE_DATA, bundleData)
+        args.putStringArrayList(TimeZoneSelectDialogFragment.TIME_ZONE_DATA, bundleData)
 
         if (timeZoneDialog == null) {
-            timeZoneDialog = TimezoneSelectedDialogFragment().also {
+            timeZoneDialog = TimeZoneSelectDialogFragment().also {
                 it.arguments = args
-                it.setDismissListener(object : TimezoneSelectedDialogFragment.DialogEventListener {
+                it.setDismissListener(object : TimeZoneSelectDialogFragment.DialogEventListener {
                     override fun onDismiss() {
                         viewModel.sendIntention(SettingIntention.Idle)
                         timeZoneDialog = null

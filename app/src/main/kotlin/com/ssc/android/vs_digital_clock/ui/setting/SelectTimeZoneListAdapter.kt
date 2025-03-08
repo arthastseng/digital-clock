@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.ssc.android.vs_digital_clock.databinding.WidgetTimeZoneListItemBinding
+import com.ssc.android.vs_digital_clock.databinding.WidgetTimeZoneSelectListItemBinding
 
-class TimeZoneListAdapter :
-    ListAdapter<String, TimeZoneListAdapter.ViewHolder>(TimeZoneDiffCallback) {
+class SelectTimeZoneListAdapter :
+    ListAdapter<String, SelectTimeZoneListAdapter.ViewHolder>(TimeZoneDiffCallback) {
 
     private var timeZoneList = listOf<String>()
     private var clickListener: OnItemClickListener? = null
@@ -19,7 +19,7 @@ class TimeZoneListAdapter :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = WidgetTimeZoneListItemBinding.inflate(
+        val binding = WidgetTimeZoneSelectListItemBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -45,7 +45,7 @@ class TimeZoneListAdapter :
 
     override fun getItemCount() = timeZoneList.size
 
-    inner class ViewHolder(val binding: WidgetTimeZoneListItemBinding) :
+    inner class ViewHolder(val binding: WidgetTimeZoneSelectListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(data: String) {
             binding.timeZone.text = data

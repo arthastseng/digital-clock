@@ -16,7 +16,7 @@ import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeZoneListViewBinding
 
-class TimezoneSelectedDialogFragment : DialogFragment() {
+class TimeZoneSelectDialogFragment : DialogFragment() {
     private var _binding: FragmentTimeZoneListViewBinding? = null
     private val binding get() = _binding!!
     private var dataList: List<String>? = null
@@ -65,7 +65,7 @@ class TimezoneSelectedDialogFragment : DialogFragment() {
     }
 
     private fun initRecyclerView() {
-        val digitalClockAdapter = TimeZoneListAdapter().apply {
+        val timeZoneSelectListAdapter = SelectTimeZoneListAdapter().apply {
             dataList?.let {
                 setData(it)
             }
@@ -74,8 +74,8 @@ class TimezoneSelectedDialogFragment : DialogFragment() {
 
         binding.recyclerView.apply {
             layoutManager = layoutMgr
-            adapter = digitalClockAdapter.apply {
-                setOnItemClickedListener(object: TimeZoneListAdapter.OnItemClickListener{
+            adapter = timeZoneSelectListAdapter.apply {
+                setOnItemClickedListener(object: SelectTimeZoneListAdapter.OnItemClickListener{
                     override fun onItemClicked(data: String) {
                         Log.d(TAG,"onItemClicked: $data")
                         val timeZone = createTimeZone(timeZoneString = data)
