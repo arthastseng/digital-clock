@@ -5,23 +5,23 @@ import com.ssc.android.vs_digital_clock.network.api.base.SystemError
 
 sealed class SettingEditIntention {
     object Idle : SettingEditIntention()
-    object FetchTimeZonesFromDB : SettingEditIntention()
-    data class DeleteTimeZone(val data: TimeZone) : SettingEditIntention()
+    object FetchTimeZones : SettingEditIntention()
+    data class DeleteTimeZones(val data: List<TimeZone>) : SettingEditIntention()
 }
 
 sealed class SettingEditAction {
     object Idle : SettingEditAction()
     object NoTimeZoneData : SettingEditAction()
-    object DeleteTimeZoneToDbCompleted : SettingEditAction()
-    data class FetchTimeZonesFromDBReady(val data: List<TimeZone>) : SettingEditAction()
+    object DeleteTimeZoneCompleted : SettingEditAction()
+    data class FetchTimeZonesReady(val data: List<TimeZone>) : SettingEditAction()
     data class ErrorOccur(val error: SystemError) : SettingEditAction()
 }
 
 sealed class SettingEditViewState {
     object Idle : SettingEditViewState()
     object NoTimeZoneData : SettingEditViewState()
-    object DeleteTimeZoneToDbCompleted : SettingEditViewState()
-    data class GetTimeZoneFromDbReady(val data: List<TimeZone>) : SettingEditViewState()
+    object DeleteTimeZoneCompleted : SettingEditViewState()
+    data class GetTimeZoneReady(val data: List<TimeZone>) : SettingEditViewState()
 }
 
 sealed class SettingEditEvent {
