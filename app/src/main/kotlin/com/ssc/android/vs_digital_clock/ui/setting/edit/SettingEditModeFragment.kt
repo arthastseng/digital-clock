@@ -17,8 +17,6 @@ import com.ssc.android.vs_digital_clock.presenteation.state.SettingEditEvent
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingEditIntention
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingEditViewState
 import com.ssc.android.vs_digital_clock.presenteation.viewmodel.SettingEditModeViewModel
-import com.ssc.android.vs_digital_clock.ui.setting.SelectedTimeZoneListAdapter
-import com.ssc.android.vs_digital_clock.ui.setting.SettingsFragment
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -46,7 +44,7 @@ class SettingEditModeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.sendIntention(SettingEditIntention.FetchTimeZonesFromDB)
+        viewModel.sendIntention(SettingEditIntention.FetchTimeZones)
     }
 
     override fun onDestroy() {
@@ -55,8 +53,23 @@ class SettingEditModeFragment : Fragment() {
     }
 
     private fun initUI() {
-        binding.back.setOnClickListener {
-            activity?.finish()
+        with(binding) {
+
+            back.setOnClickListener {
+                activity?.finish()
+            }
+
+            delete.setOnClickListener {
+                val adapter = binding.recyclerView.adapter
+                if (adapter is SettingEditModeListAdapter) {
+                    val deleteTimeZones = adapter.getDeleteTimeZones()
+                    if (deleteTimeZones.isNotEmpty()) {
+                        viewModel.sendIntention(
+                            SettingEditIntention.DeleteTimeZones(data = deleteTimeZones)
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -72,8 +85,11 @@ class SettingEditModeFragment : Fragment() {
     private fun handleViewStateUpdate(state: SettingEditViewState) {
         Log.d(TAG, "handleViewStateUpdate: $state")
         when (state) {
-            is SettingEditViewState.GetTimeZoneFromDbReady ->
+            is SettingEditViewState.GetTimeZoneReady ->
                 handleTimeZoneDatabaseDataReady(data = state.data)
+
+            is SettingEditViewState.DeleteTimeZoneCompleted ->
+                handleDeleteTimeZoneCompleted()
 
             else -> Unit
         }
@@ -115,6 +131,10 @@ class SettingEditModeFragment : Fragment() {
             adapter = settingEditModeListAdapter
             adapter?.notifyDataSetChanged()
         }
+    }
+
+    private fun handleDeleteTimeZoneCompleted() {
+        viewModel.sendIntention(SettingEditIntention.FetchTimeZones)
     }
 
     companion object {

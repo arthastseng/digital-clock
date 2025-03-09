@@ -2,7 +2,9 @@ package com.ssc.android.vs_digital_clock.presenteation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.di.DefaultDispatcher
+import com.ssc.android.vs_digital_clock.domain.usecase.DeleteTimeZoneFromDbUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZonesFromDbUseCase
 import com.ssc.android.vs_digital_clock.presenteation.base.MVIViewModel
 import com.ssc.android.vs_digital_clock.presenteation.state.SettingEditAction
@@ -17,6 +19,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SettingEditModeViewModel @Inject constructor(
     private val fetchTimeZonesFromDbUseCase: FetchTimeZonesFromDbUseCase,
+    private val deleteTimeZoneFromDbUseCase: DeleteTimeZoneFromDbUseCase,
     @DefaultDispatcher dispatcher: CoroutineDispatcher
 ) : MVIViewModel<SettingEditIntention, SettingEditAction, SettingEditViewState, SettingEditEvent>(
     defaultDispatcher = dispatcher,
@@ -25,7 +28,9 @@ class SettingEditModeViewModel @Inject constructor(
     override suspend fun onIntention(intention: SettingEditIntention) {
         Log.d(TAG, "onIntention: $intention")
         when (intention) {
-            is SettingEditIntention -> fetchTimeZonesFromDatabase()
+            is SettingEditIntention.FetchTimeZones -> fetchTimeZonesFromDB()
+            is SettingEditIntention.DeleteTimeZones -> deleteTimeZonesFromDB(data = intention.data)
+            else -> sendAction(SettingEditAction.Idle)
         }
     }
 
@@ -33,18 +38,31 @@ class SettingEditModeViewModel @Inject constructor(
         Log.d(TAG, "onReduce: $action")
         return when (action) {
             is SettingEditAction.Idle -> SettingEditViewState.Idle
-            is SettingEditAction.FetchTimeZonesFromDBReady ->
-                SettingEditViewState.GetTimeZoneFromDbReady(data = action.data)
+
+            is SettingEditAction.FetchTimeZonesReady ->
+                SettingEditViewState.GetTimeZoneReady(data = action.data)
+
+            is SettingEditAction.DeleteTimeZoneCompleted ->
+                SettingEditViewState.DeleteTimeZoneCompleted
 
             else -> SettingEditViewState.Idle
         }
     }
 
-    private fun fetchTimeZonesFromDatabase() {
+    private fun fetchTimeZonesFromDB() {
         viewModelScope.launch {
             val output = fetchTimeZonesFromDbUseCase()
             if (output is FetchTimeZonesFromDbUseCase.Output.Result) {
-                sendAction(SettingEditAction.FetchTimeZonesFromDBReady(data = output.data))
+                sendAction(SettingEditAction.FetchTimeZonesReady(data = output.data))
+            }
+        }
+    }
+
+    private fun deleteTimeZonesFromDB(data: List<TimeZone>) {
+        viewModelScope.launch {
+            val output = deleteTimeZoneFromDbUseCase(data = data)
+            if (output is DeleteTimeZoneFromDbUseCase.Output.Completed) {
+                sendAction(SettingEditAction.DeleteTimeZoneCompleted)
             }
         }
     }

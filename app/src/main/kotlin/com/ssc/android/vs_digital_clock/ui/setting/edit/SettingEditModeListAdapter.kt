@@ -13,11 +13,7 @@ class SettingEditModeListAdapter :
     ListAdapter<TimeZone, SettingEditModeListAdapter.ViewHolder>(TimeZoneDiffCallback) {
 
     private var selectedTimeZoneList = listOf<TimeZone>()
-    private var clickListener: OnItemClickListener? = null
-
-    interface OnItemClickListener {
-        fun onItemClicked(data: TimeZone)
-    }
+    private val deleteTimeZones = mutableListOf<TimeZone>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = WidgetSettingEditModeListItemBinding.inflate(
@@ -29,9 +25,17 @@ class SettingEditModeListAdapter :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(data = selectedTimeZoneList[position])
-        holder.binding.root.setOnClickListener {
-            clickListener?.onItemClicked(selectedTimeZoneList[position])
+
+        with(holder) {
+            val data = selectedTimeZoneList[position]
+            bind(data = data)
+            binding.checkbox.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    deleteTimeZones.add(data)
+                } else {
+                    deleteTimeZones.remove(data)
+                }
+            }
         }
     }
 
@@ -40,8 +44,8 @@ class SettingEditModeListAdapter :
         selectedTimeZoneList = data
     }
 
-    fun setOnItemClickedListener(listener: OnItemClickListener) {
-        clickListener = listener
+    fun getDeleteTimeZones(): List<TimeZone> {
+        return deleteTimeZones
     }
 
     override fun getItemCount() = selectedTimeZoneList.size
