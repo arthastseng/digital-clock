@@ -33,18 +33,17 @@ class SettingViewModel @Inject constructor(
     override suspend fun onIntention(intention: SettingIntention) {
         Log.d(TAG, "onIntention: $intention")
         when (intention) {
-            is SettingIntention.Idle -> sendAction(SettingAction.Idle)
             is SettingIntention.PreloadTimeZone -> preloadAvailableTimeZone()
             is SettingIntention.FetchAvailableTimeZone -> getAvailableTimeZone()
             is SettingIntention.FetchTimeZonesFromDB -> fetchTimeZonesFromDatabase()
             is SettingIntention.AddTimeZone -> insertTimeZoneToDB(data = intention.data)
+            else -> sendAction(SettingAction.Idle)
         }
     }
 
     override suspend fun onReduce(action: SettingAction): SettingViewState {
         Log.d(TAG, "onReduce: $action")
         return when (action) {
-            is SettingAction.Idle -> return SettingViewState.Idle
             is SettingAction.TimeZoneDataReady -> SettingViewState.TimeZoneDataReady(data = action.data)
             is SettingAction.FetchTimeZonesFromDBReady -> SettingViewState.GetTimeZoneFromDbReady(
                 data = action.data
