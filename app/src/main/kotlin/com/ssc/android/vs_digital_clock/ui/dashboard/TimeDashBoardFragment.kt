@@ -23,6 +23,8 @@ import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardViewSta
 import com.ssc.android.vs_digital_clock.presenteation.viewmodel.TimeDashBoardViewModel
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Timer
+import java.util.TimerTask
 
 @AndroidEntryPoint
 class TimeDashBoardFragment : Fragment() {
@@ -30,6 +32,9 @@ class TimeDashBoardFragment : Fragment() {
     private val binding get() = _binding!!
     private var digitalClockAdapter: DigitalClockListAdapter? = null
     private val viewModel: TimeDashBoardViewModel by viewModels()
+    private var actionbarMenu: Menu? = null
+    private var refreshRate: Int = 0
+    private var timer: Timer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,8 +42,8 @@ class TimeDashBoardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentTimeDashBoardBinding.inflate(inflater, container, false)
-        initActionbar()
         initViewModel()
+        initActionbar()
         return binding.root
     }
 
@@ -50,7 +55,7 @@ class TimeDashBoardFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.loadingProgress.visibility = View.VISIBLE
-        viewModel.sendIntention(TimeDashBoardIntention.FetchTimeZones)
+        getRefreshRatePreference()
     }
 
     private fun initRecyclerView() {
@@ -67,14 +72,29 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
+    private fun getRefreshRatePreference() {
+        viewModel.sendIntention(TimeDashBoardIntention.GetRefreshRate)
+    }
+
+    private fun getTimeZones() {
+        viewModel.sendIntention(TimeDashBoardIntention.FetchTimeZones)
+    }
+
     private fun initActionbar() {
         // The usage of an interface lets you inject your own implementation
         val menuHost: MenuHost = requireActivity()
 
         menuHost.addMenuProvider(object : MenuProvider {
+
+            override fun onPrepareMenu(menu: Menu) {
+                super.onPrepareMenu(menu)
+                handleRefreshRateUpdate(refreshRate)
+            }
+
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 // Add menu items here
                 menuInflater.inflate(R.menu.menu_time_dash_board, menu)
+                actionbarMenu = menu
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -87,6 +107,24 @@ class TimeDashBoardFragment : Fragment() {
 
                     R.id.action_language -> {
                         Log.d(TAG, "language action selected")
+                        true
+                    }
+
+                    R.id.action_refresh_1_min -> {
+                        Log.d(TAG, "refresh 5 min selected")
+                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 1))
+                        true
+                    }
+
+                    R.id.action_refresh_5_min -> {
+                        Log.d(TAG, "refresh 5 min selected")
+                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 5))
+                        true
+                    }
+
+                    R.id.action_refresh_10_min -> {
+                        Log.d(TAG, "refresh 10 min selected")
+                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 10))
                         true
                     }
 
@@ -111,7 +149,49 @@ class TimeDashBoardFragment : Fragment() {
             is TimeDashBoardViewState.FetchTimeZoneReady ->
                 handleTimeZoneDataReady(data = state.data)
 
+            is TimeDashBoardViewState.GetRefreshRateReady -> {
+                refreshRate = state.data
+                activity?.invalidateOptionsMenu()
+                startTimerTask()
+            }
+
+            is TimeDashBoardViewState.RefreshRateUpdateCompleted -> {
+                refreshRate = state.rate
+                activity?.invalidateOptionsMenu()
+                stopTimerTask()
+                startTimerTask()
+            }
+
             else -> Unit
+        }
+    }
+
+    private fun handleRefreshRateUpdate(data: Int) {
+        //reset menu checked status
+        actionbarMenu?.apply {
+            findItem(R.id.action_refresh_1_min).isChecked = false
+            findItem(R.id.action_refresh_5_min).isChecked = false
+            findItem(R.id.action_refresh_10_min).isChecked = false
+        }
+
+        when (data) {
+            1 -> {
+                actionbarMenu?.apply {
+                    findItem(R.id.action_refresh_1_min).isChecked = true
+                }
+            }
+
+            5 -> {
+                actionbarMenu?.apply {
+                    findItem(R.id.action_refresh_5_min).isChecked = true
+                }
+            }
+
+            10 -> {
+                actionbarMenu?.apply {
+                    findItem(R.id.action_refresh_10_min).isChecked = true
+                }
+            }
         }
     }
 
@@ -135,8 +215,28 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
+    private fun startTimerTask() {
+        if (timer == null) {
+            timer = Timer()
+        }
+
+        timer?.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                Log.d(TAG, "timer task exec")
+                getTimeZones()
+            }
+        }, 0, (refreshRate * 60 * 1000).toLong())
+    }
+
+    private fun stopTimerTask() {
+        Log.d(TAG, "timer task stop")
+        timer?.cancel()
+        timer = null
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        stopTimerTask()
         _binding = null
     }
 

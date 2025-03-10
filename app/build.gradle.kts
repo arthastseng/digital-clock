@@ -103,4 +103,7 @@ dependencies {
     implementation(libs.bundles.room)
     testImplementation(libs.androidx.room.testing)
     kapt(libs.androidx.room.compiler)
+
+    //DataStore
+    implementation(libs.bundles.datastore)
 }
