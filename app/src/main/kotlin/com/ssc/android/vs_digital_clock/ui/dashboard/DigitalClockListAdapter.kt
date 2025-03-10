@@ -41,15 +41,9 @@ class DigitalClockListAdapter :
         fun bind(data: TimeZoneInfo) {
             Log.d(TAG, "bind data : ${data.toString()}")
 
-            val regionDisplayText = itemView.context.getString(
-                R.string.region_display_text,
-                data.region,
-                data.city
-            )
-
             with(binding) {
                 time.text = data.time.toString()
-                region.text = regionDisplayText
+                timezone.text = data.timeZone
             }
         }
     }

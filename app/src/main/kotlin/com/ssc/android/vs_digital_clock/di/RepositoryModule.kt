@@ -1,12 +1,16 @@
 package com.ssc.android.vs_digital_clock.di
 
+import com.ssc.android.vs_digital_clock.data.datasource.DashboardDataSource
 import com.ssc.android.vs_digital_clock.data.datasource.DatabaseDataSource
 import com.ssc.android.vs_digital_clock.data.datasource.SettingDataSource
+import com.ssc.android.vs_digital_clock.data.datasource.impl.DashboardDataSourceImpl
 import com.ssc.android.vs_digital_clock.data.datasource.impl.DatabaseDataSourceImpl
 import com.ssc.android.vs_digital_clock.data.datasource.impl.SettingDataSourceImpl
 import com.ssc.android.vs_digital_clock.data.db.TimeZoneDao
+import com.ssc.android.vs_digital_clock.domain.repository.DashboardRepository
 import com.ssc.android.vs_digital_clock.domain.repository.DatabaseRepository
 import com.ssc.android.vs_digital_clock.domain.repository.SettingRepository
+import com.ssc.android.vs_digital_clock.domain.repository.impl.DashboardRepositoryImpl
 import com.ssc.android.vs_digital_clock.domain.repository.impl.SettingRepositoryImpl
 import com.ssc.android.vs_digital_clock.domain.repository.impl.DatabaseRepositoryImpl
 import dagger.Module
@@ -46,5 +50,19 @@ object RepositoryModule {
         timeZoneDao: TimeZoneDao
     ): DatabaseDataSource {
         return DatabaseDataSourceImpl(timeZoneDao = timeZoneDao)
+    }
+
+    @Provides
+    @ViewModelScoped
+    fun provideDashBoardDataSource(): DashboardDataSource {
+        return DashboardDataSourceImpl()
+    }
+
+    @Provides
+    @ViewModelScoped
+    fun provideDashBoardRepositoryRepository(
+        datasource: DashboardDataSource
+    ): DashboardRepository {
+        return DashboardRepositoryImpl(dataSource = datasource)
     }
 }
