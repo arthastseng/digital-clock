@@ -9,4 +9,8 @@
     <string name="add">新增</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
+    <!-- refresh rate menu -->
+    <string name="menu_refresh_1_min">1 分鐘</string>
+    <string name="menu_refresh_5_min">5 分鐘</string>
+    <string name="menu_refresh_10_min">10 分鐘</string>
 </resources>

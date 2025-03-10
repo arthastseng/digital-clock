@@ -10,4 +10,8 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
 
+    <!-- refresh rate menu -->
+    <string name="menu_refresh_1_min">1 Min</string>
+    <string name="menu_refresh_5_min">5 Min</string>
+    <string name="menu_refresh_10_min">10 Min</string>
 </resources>
