@@ -13,7 +13,6 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
@@ -29,7 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class TimeDashBoardFragment : Fragment() {
     private var _binding: FragmentTimeDashBoardBinding? = null
     private val binding get() = _binding!!
-    private var adapter: DigitalClockListAdapter? = null
+    private var digitalClockAdapter: DigitalClockListAdapter? = null
     private val viewModel: TimeDashBoardViewModel by viewModels()
 
     override fun onCreateView(
@@ -50,13 +49,21 @@ class TimeDashBoardFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.loadingProgress.visibility = View.VISIBLE
         viewModel.sendIntention(TimeDashBoardIntention.FetchTimeZones)
     }
 
     private fun initRecyclerView() {
         binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(context, COLUMN_SIZE)
-            addItemDecoration(DividerItemDecoration(context, GridLayoutManager.VERTICAL))
+            context?.let {
+                layoutManager = GridLayoutManager(it, COLUMN_SIZE)
+                val decoration = GridItemDecoration(
+                    context = it,
+                    itemWidth = it.resources.getDimensionPixelOffset(R.dimen.digital_clock_item_width),
+                    columnCount = COLUMN_SIZE
+                )
+                addItemDecoration(decoration)
+            }
         }
     }
 
@@ -115,14 +122,16 @@ class TimeDashBoardFragment : Fragment() {
 
     private fun handleTimeZoneDataReady(data: List<TimeZoneInfo>) {
         Log.d(TAG, "handleTimeZoneDatabaseDataReady: $data")
-        adapter = DigitalClockListAdapter().apply {
+        binding.loadingProgress.visibility = View.INVISIBLE
+
+        digitalClockAdapter = DigitalClockListAdapter().apply {
             data?.let {
                 setData(it)
             }
         }
         binding.recyclerView.apply {
-            adapter = adapter
-            adapter?.notifyDataSetChanged()
+            adapter = digitalClockAdapter
+            digitalClockAdapter?.notifyDataSetChanged()
         }
     }
 
