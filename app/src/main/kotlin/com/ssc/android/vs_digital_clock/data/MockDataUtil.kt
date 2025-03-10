@@ -5,9 +5,8 @@ object MockDataUtil {
         val mockData = mutableListOf<TimeZoneInfo>()
         for (i in 0 until 10) {
             val data = TimeZoneInfo(
-                time = 1741168451101,
-                region = "Asia",
-                city = "Taiwan $i"
+                time = "11:20",
+                timeZone = "Asia/Zone $i"
             )
             mockData.add(data)
         }

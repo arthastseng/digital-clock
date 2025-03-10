@@ -11,13 +11,18 @@ import android.view.ViewGroup
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import com.ssc.android.vs_digital_clock.R
-import com.ssc.android.vs_digital_clock.data.MockDataUtil
+import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
-import com.ssc.android.vs_digital_clock.ui.dashboard.DigitalClockListAdapter
+import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardEvent
+import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardIntention
+import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardViewState
+import com.ssc.android.vs_digital_clock.presenteation.viewmodel.TimeDashBoardViewModel
+import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -25,6 +30,7 @@ class TimeDashBoardFragment : Fragment() {
     private var _binding: FragmentTimeDashBoardBinding? = null
     private val binding get() = _binding!!
     private var adapter: DigitalClockListAdapter? = null
+    private val viewModel: TimeDashBoardViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,6 +39,7 @@ class TimeDashBoardFragment : Fragment() {
     ): View? {
         _binding = FragmentTimeDashBoardBinding.inflate(inflater, container, false)
         initActionbar()
+        initViewModel()
         return binding.root
     }
 
@@ -41,20 +48,15 @@ class TimeDashBoardFragment : Fragment() {
         initRecyclerView()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.sendIntention(TimeDashBoardIntention.FetchTimeZones)
+    }
+
     private fun initRecyclerView() {
-
-        //TODO mock data
-        val mockData = MockDataUtil.createMockData()
-
-        val digitalClockAdapter = DigitalClockListAdapter().apply {
-            setData(data = mockData)
-        }
-
         binding.recyclerView.apply {
             layoutManager = GridLayoutManager(context, COLUMN_SIZE)
-            adapter = digitalClockAdapter
-            addItemDecoration(DividerItemDecoration(context,GridLayoutManager.VERTICAL))
-            adapter?.notifyDataSetChanged()
+            addItemDecoration(DividerItemDecoration(context, GridLayoutManager.VERTICAL))
         }
     }
 
@@ -72,17 +74,56 @@ class TimeDashBoardFragment : Fragment() {
                 // Handle the menu selection
                 return when (menuItem.itemId) {
                     R.id.action_refresh -> {
-                        Log.d(TAG,"refresh action selected")
+                        Log.d(TAG, "refresh action selected")
                         true
                     }
+
                     R.id.action_language -> {
-                        Log.d(TAG,"language action selected")
+                        Log.d(TAG, "language action selected")
                         true
                     }
+
                     else -> false
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun initViewModel() {
+        collectFlowWhenStart(viewModel.stateFlow) {
+            handleViewStateUpdate(state = it)
+        }
+        collectFlowWhenStart(viewModel.eventFlow) {
+            handleViewModelEvent(event = it)
+        }
+    }
+
+    private fun handleViewStateUpdate(state: TimeDashBoardViewState) {
+        Log.d(TAG, "handleViewStateUpdate: $state")
+        when (state) {
+            is TimeDashBoardViewState.FetchTimeZoneReady ->
+                handleTimeZoneDataReady(data = state.data)
+
+            else -> Unit
+        }
+    }
+
+    private fun handleViewModelEvent(event: TimeDashBoardEvent) {
+        Log.d(TAG, "handleViewModelEvent: $event")
+
+    }
+
+    private fun handleTimeZoneDataReady(data: List<TimeZoneInfo>) {
+        Log.d(TAG, "handleTimeZoneDatabaseDataReady: $data")
+        adapter = DigitalClockListAdapter().apply {
+            data?.let {
+                setData(it)
+            }
+        }
+        binding.recyclerView.apply {
+            adapter = adapter
+            adapter?.notifyDataSetChanged()
+        }
     }
 
     override fun onDestroyView() {

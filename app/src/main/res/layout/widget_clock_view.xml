@@ -20,7 +20,7 @@
         tools:text="12:00" />
 
     <TextView
-        android:id="@+id/region"
+        android:id="@+id/timezone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
