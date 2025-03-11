@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:text="@string/no_data_hint"
             android:textColor="@color/black"
+            android:textStyle="bold"
             android:textSize="@dimen/no_data_hint_font_size"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -10,9 +10,10 @@
     <dimen name="setting_edit_mode_check_box_size">38dp</dimen>
     <dimen name="progress_bar_size">60dp</dimen>
     <dimen name="digital_clock_item_width">180dp</dimen>
+    <dimen name="floating_button_close_size">24dp</dimen>
 
     <!-- font size -->
-    <dimen name="no_data_hint_font_size">12sp</dimen>
+    <dimen name="no_data_hint_font_size">20sp</dimen>
     <dimen name="clock_font_size">18sp</dimen>
     <dimen name="time_zone_list_item_font_size">18sp</dimen>
 </resources>

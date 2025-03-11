@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.presenteation.base
+package com.ssc.android.vs_digital_clock.presentation.base
 
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
