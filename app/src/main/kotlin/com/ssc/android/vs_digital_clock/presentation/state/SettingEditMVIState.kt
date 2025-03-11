@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.presenteation.state
+package com.ssc.android.vs_digital_clock.presentation.state
 
 import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.network.api.base.SystemError

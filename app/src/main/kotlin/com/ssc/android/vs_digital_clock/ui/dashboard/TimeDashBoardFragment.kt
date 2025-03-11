@@ -1,6 +1,9 @@
 package com.ssc.android.vs_digital_clock.ui.dashboard
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -14,13 +17,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.gson.Gson
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardEvent
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardIntention
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardViewState
-import com.ssc.android.vs_digital_clock.presenteation.viewmodel.TimeDashBoardViewModel
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardEvent
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardIntention
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardViewState
+import com.ssc.android.vs_digital_clock.presentation.viewmodel.TimeDashBoardViewModel
+import com.ssc.android.vs_digital_clock.service.FloatingWindowService
+import com.ssc.android.vs_digital_clock.service.FloatingWindowService.Companion.DATA_BUNDLE_KEY
+import com.ssc.android.vs_digital_clock.service.FloatingWindowUpdateUtil
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Timer
@@ -35,6 +42,7 @@ class TimeDashBoardFragment : Fragment() {
     private var actionbarMenu: Menu? = null
     private var refreshRate: Int = 0
     private var timer: Timer? = null
+    private var currentFloatingClockTimeZone: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +81,7 @@ class TimeDashBoardFragment : Fragment() {
     }
 
     private fun getRefreshRatePreference() {
+        binding.noDataHint.visibility = View.INVISIBLE
         viewModel.sendIntention(TimeDashBoardIntention.GetRefreshRate)
     }
 
@@ -204,15 +213,57 @@ class TimeDashBoardFragment : Fragment() {
         Log.d(TAG, "handleTimeZoneDatabaseDataReady: $data")
         binding.loadingProgress.visibility = View.INVISIBLE
 
+        if (data.isEmpty()) {
+            binding.noDataHint.visibility = View.VISIBLE
+            stopTimerTask()
+        } else {
+            binding.noDataHint.visibility = View.INVISIBLE
+        }
+
         digitalClockAdapter = DigitalClockListAdapter().apply {
             data?.let {
                 setData(it)
+                setOnItemClickListener(object : DigitalClockListAdapter.OnItemClickListener {
+                    override fun onItemClick(data: TimeZoneInfo) {
+                        permissionCheck(data = data)
+                    }
+                })
             }
         }
         binding.recyclerView.apply {
             adapter = digitalClockAdapter
             digitalClockAdapter?.notifyDataSetChanged()
         }
+
+        FloatingWindowUpdateUtil.updateData(data)
+    }
+
+    private fun permissionCheck(data: TimeZoneInfo) {
+        Log.d(TAG, "startFloatingClock: $data")
+        context?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(it)) {
+                    // Redirect the user to the Settings page to grant permission
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                    startActivityForResult(intent, REQUEST_CODE)
+                } else {
+                    createFloatingWindow(data = data)
+                }
+            } else {
+                // No need to request permission for versions lower than Android 6.0
+                createFloatingWindow(data = data)
+            }
+        }
+    }
+
+    private fun createFloatingWindow(data: TimeZoneInfo) {
+        // Permission granted, proceed to show the floating window
+        val intent = Intent(context, FloatingWindowService::class.java).apply {
+            currentFloatingClockTimeZone = data.timeZone
+            putExtra(DATA_BUNDLE_KEY, Gson().toJson(data))
+        }
+        intent.action = Settings.ACTION_MANAGE_OVERLAY_PERMISSION
+        activity?.startForegroundService(intent)
     }
 
     private fun startTimerTask() {
@@ -225,7 +276,7 @@ class TimeDashBoardFragment : Fragment() {
                 Log.d(TAG, "timer task exec")
                 getTimeZones()
             }
-        }, 0, (refreshRate * 60 * 1000).toLong())
+        }, 0, (refreshRate *10* 1000).toLong())
     }
 
     private fun stopTimerTask() {
@@ -243,5 +294,6 @@ class TimeDashBoardFragment : Fragment() {
     companion object {
         private const val COLUMN_SIZE = 2
         private const val TAG = "TimeDashBoardFragment"
+        private const val REQUEST_CODE = 1100
     }
 }

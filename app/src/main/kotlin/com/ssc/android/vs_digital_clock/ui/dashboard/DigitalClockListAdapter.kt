@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
 import com.ssc.android.vs_digital_clock.databinding.WidgetClockViewBinding
 
@@ -14,6 +13,15 @@ class DigitalClockListAdapter :
     ListAdapter<TimeZoneInfo, DigitalClockListAdapter.ViewHolder>(TimeZoneDiffCallback) {
 
     private var timeZoneList = listOf<TimeZoneInfo>()
+    private var itemClickListener: OnItemClickListener? = null
+
+    interface OnItemClickListener {
+        fun onItemClick(data: TimeZoneInfo)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        itemClickListener = listener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = WidgetClockViewBinding.inflate(
@@ -34,6 +42,10 @@ class DigitalClockListAdapter :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(data = timeZoneList[position])
+        holder.binding.root.setOnClickListener {
+            val timezoneInfo = timeZoneList[position]
+            itemClickListener?.onItemClick(data = timezoneInfo)
+        }
     }
 
     inner class ViewHolder(val binding: WidgetClockViewBinding) :

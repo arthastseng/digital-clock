@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.presenteation.viewmodel
+package com.ssc.android.vs_digital_clock.presentation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
@@ -7,11 +7,11 @@ import com.ssc.android.vs_digital_clock.di.DefaultDispatcher
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchAvailableTimeZoneUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZonesFromDbUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.InsertTimeZoneToDbUseCase
-import com.ssc.android.vs_digital_clock.presenteation.base.MVIViewModel
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingAction
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingEvent
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingIntention
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingViewState
+import com.ssc.android.vs_digital_clock.presentation.base.MVIViewModel
+import com.ssc.android.vs_digital_clock.presentation.state.SettingAction
+import com.ssc.android.vs_digital_clock.presentation.state.SettingEvent
+import com.ssc.android.vs_digital_clock.presentation.state.SettingIntention
+import com.ssc.android.vs_digital_clock.presentation.state.SettingViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher

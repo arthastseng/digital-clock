@@ -1,4 +1,4 @@
-package com.ssc.android.vs_digital_clock.presenteation.viewmodel
+package com.ssc.android.vs_digital_clock.presentation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
@@ -8,11 +8,11 @@ import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZoneUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZonesFromDbUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.GetRefreshRateUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.SetRefreshRateUseCase
-import com.ssc.android.vs_digital_clock.presenteation.base.MVIViewModel
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardAction
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardEvent
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardIntention
-import com.ssc.android.vs_digital_clock.presenteation.state.TimeDashBoardViewState
+import com.ssc.android.vs_digital_clock.presentation.base.MVIViewModel
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardAction
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardEvent
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardIntention
+import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher

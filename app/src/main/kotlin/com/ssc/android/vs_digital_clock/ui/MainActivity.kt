@@ -57,4 +57,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    companion object {
+        private const val REQUEST_CODE = 1100
+    }
 }

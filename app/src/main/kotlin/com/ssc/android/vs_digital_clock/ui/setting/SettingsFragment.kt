@@ -21,10 +21,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentSettingBinding
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingEvent
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingIntention
-import com.ssc.android.vs_digital_clock.presenteation.state.SettingViewState
-import com.ssc.android.vs_digital_clock.presenteation.viewmodel.SettingViewModel
+import com.ssc.android.vs_digital_clock.presentation.state.SettingEvent
+import com.ssc.android.vs_digital_clock.presentation.state.SettingIntention
+import com.ssc.android.vs_digital_clock.presentation.state.SettingViewState
+import com.ssc.android.vs_digital_clock.presentation.viewmodel.SettingViewModel
 import com.ssc.android.vs_digital_clock.ui.setting.edit.SettingEditModeActivity
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
