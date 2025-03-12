@@ -6,8 +6,11 @@ import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
 import com.ssc.android.vs_digital_clock.di.DefaultDispatcher
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZoneUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.FetchTimeZonesFromDbUseCase
+import com.ssc.android.vs_digital_clock.domain.usecase.GetLanguageUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.GetRefreshRateUseCase
+import com.ssc.android.vs_digital_clock.domain.usecase.SetLanguageUseCase
 import com.ssc.android.vs_digital_clock.domain.usecase.SetRefreshRateUseCase
+import com.ssc.android.vs_digital_clock.network.api.base.SystemError
 import com.ssc.android.vs_digital_clock.presentation.base.MVIViewModel
 import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardAction
 import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardEvent
@@ -29,20 +32,25 @@ class TimeDashBoardViewModel @Inject constructor(
     private val fetchTimeZonesUseCase: FetchTimeZoneUseCase,
     private val getRefreshRateUseCase: GetRefreshRateUseCase,
     private val setRefreshRateUseCase: SetRefreshRateUseCase,
+    private val getLanguageUseCase: GetLanguageUseCase,
+    private val setLanguageUseCase: SetLanguageUseCase,
     @DefaultDispatcher dispatcher: CoroutineDispatcher
 ) : MVIViewModel<TimeDashBoardIntention, TimeDashBoardAction, TimeDashBoardViewState, TimeDashBoardEvent>(
     defaultDispatcher = dispatcher,
     initialState = TimeDashBoardViewState.Idle
 ) {
 
-    private var job : Job? = null
+    private var job: Job? = null
 
     override suspend fun onIntention(intention: TimeDashBoardIntention) {
         Log.d(TAG, "onIntention: $intention")
         when (intention) {
             is TimeDashBoardIntention.FetchTimeZones -> fetchTimeZones()
             is TimeDashBoardIntention.GetRefreshRate -> getRefreshRate()
+            is TimeDashBoardIntention.GetLanguage -> getLanguage()
+            is TimeDashBoardIntention.GetPreference -> getPreference()
             is TimeDashBoardIntention.RefreshRateChanged -> setRefreshRate(rate = intention.rate)
+            is TimeDashBoardIntention.LanguageChanged -> setLanguage(language = intention.language)
             else -> sendAction(TimeDashBoardAction.Idle)
         }
     }
@@ -59,7 +67,39 @@ class TimeDashBoardViewModel @Inject constructor(
             is TimeDashBoardAction.RefreshRateUpdateCompleted ->
                 TimeDashBoardViewState.RefreshRateUpdateCompleted(rate = action.rate)
 
+            is TimeDashBoardAction.GetLanguageCompleted ->
+                TimeDashBoardViewState.GetLanguageReady(data = action.language)
+
+            is TimeDashBoardAction.LanguageUpdateCompleted ->
+                TimeDashBoardViewState.LanguageUpdateCompleted(language = action.language)
+
+            is TimeDashBoardAction.GetPreferenceCompleted ->
+                TimeDashBoardViewState.GetPreferenceCompleted(
+                    rate = action.rate,
+                    language = action.language
+                )
+
+            is TimeDashBoardAction.ErrorOccur -> handleErrorOccurAction(action.error)
+
             else -> TimeDashBoardViewState.Idle
+        }
+    }
+
+    private fun getLanguage() {
+        job = viewModelScope.launch {
+            val output = getLanguageUseCase()
+            if (output is GetLanguageUseCase.Output.Completed) {
+                sendAction(TimeDashBoardAction.GetLanguageCompleted(language = output.data))
+            }
+        }
+    }
+
+    private fun setLanguage(language: String) {
+        job = viewModelScope.launch {
+            val output = setLanguageUseCase(language = language)
+            if (output is SetLanguageUseCase.Output.Completed) {
+                sendAction(TimeDashBoardAction.LanguageUpdateCompleted(language = output.data))
+            }
         }
     }
 
@@ -78,6 +118,42 @@ class TimeDashBoardViewModel @Inject constructor(
             if (output is SetRefreshRateUseCase.Output.Completed) {
                 sendAction(TimeDashBoardAction.RefreshRateUpdateCompleted(rate = output.data))
             }
+        }
+    }
+
+    private fun getPreference() {
+        job = viewModelScope.launch {
+
+            var refreshRate = 1
+            var systemLanguage = "en"
+
+            val getRefreshRateTask = async {
+                getRefreshRateUseCase()
+            }
+
+            val getLanguageTask = async {
+                getLanguageUseCase()
+            }
+
+            val deferred = listOf(getRefreshRateTask, getLanguageTask).awaitAll()
+            deferred.forEach {
+                when (it) {
+                    is GetRefreshRateUseCase.Output.Completed -> {
+                        refreshRate = it.data
+                    }
+
+                    is GetLanguageUseCase.Output.Completed -> {
+                        systemLanguage = it.data
+                    }
+                }
+            }
+
+            sendAction(
+                TimeDashBoardAction.GetPreferenceCompleted(
+                    rate = refreshRate,
+                    language = systemLanguage
+                )
+            )
         }
     }
 
@@ -119,6 +195,13 @@ class TimeDashBoardViewModel @Inject constructor(
                 sendAction(TimeDashBoardAction.FetchTimeZonesCompleted(data = timeZoneList))
             }
         }
+    }
+
+    private fun handleErrorOccurAction(error: SystemError): TimeDashBoardViewState {
+        viewModelScope.launch {
+            sendEvent(TimeDashBoardEvent.ErrorOccur(error))
+        }
+        return TimeDashBoardViewState.Idle
     }
 
     override fun onCleared() {
