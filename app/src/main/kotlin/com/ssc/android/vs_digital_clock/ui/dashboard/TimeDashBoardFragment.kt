@@ -1,5 +1,6 @@
 package com.ssc.android.vs_digital_clock.ui.dashboard
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -11,6 +12,8 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -20,7 +23,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.google.gson.Gson
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
+import com.ssc.android.vs_digital_clock.data.datastore.RefreshRate
+import com.ssc.android.vs_digital_clock.data.datastore.SystemLanguage
 import com.ssc.android.vs_digital_clock.databinding.FragmentTimeDashBoardBinding
+import com.ssc.android.vs_digital_clock.network.api.base.SystemError
 import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardEvent
 import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardIntention
 import com.ssc.android.vs_digital_clock.presentation.state.TimeDashBoardViewState
@@ -28,8 +34,10 @@ import com.ssc.android.vs_digital_clock.presentation.viewmodel.TimeDashBoardView
 import com.ssc.android.vs_digital_clock.service.FloatingWindowService
 import com.ssc.android.vs_digital_clock.service.FloatingWindowService.Companion.DATA_BUNDLE_KEY
 import com.ssc.android.vs_digital_clock.service.FloatingWindowUpdateUtil
+import com.ssc.android.vs_digital_clock.ui.util.LocaleUtil
 import com.ssc.android.vs_digital_clock.ui.util.collectFlowWhenStart
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
 
@@ -40,9 +48,9 @@ class TimeDashBoardFragment : Fragment() {
     private var digitalClockAdapter: DigitalClockListAdapter? = null
     private val viewModel: TimeDashBoardViewModel by viewModels()
     private var actionbarMenu: Menu? = null
-    private var refreshRate: Int = 0
+    private var refreshRate: Int = RefreshRate.ONE_MINUTE.rate
+    private var systemLanguage: String = SystemLanguage.EN.code
     private var timer: Timer? = null
-    private var currentFloatingClockTimeZone: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -63,7 +71,7 @@ class TimeDashBoardFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.loadingProgress.visibility = View.VISIBLE
-        getRefreshRatePreference()
+        getPreference()
     }
 
     private fun initRecyclerView() {
@@ -80,9 +88,9 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
-    private fun getRefreshRatePreference() {
+    private fun getPreference() {
         binding.noDataHint.visibility = View.INVISIBLE
-        viewModel.sendIntention(TimeDashBoardIntention.GetRefreshRate)
+        viewModel.sendIntention(TimeDashBoardIntention.GetPreference)
     }
 
     private fun getTimeZones() {
@@ -97,7 +105,7 @@ class TimeDashBoardFragment : Fragment() {
 
             override fun onPrepareMenu(menu: Menu) {
                 super.onPrepareMenu(menu)
-                handleRefreshRateUpdate(refreshRate)
+                updateActionbarMenuCheckStatus()
             }
 
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -121,19 +129,49 @@ class TimeDashBoardFragment : Fragment() {
 
                     R.id.action_refresh_1_min -> {
                         Log.d(TAG, "refresh 5 min selected")
-                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 1))
+                        viewModel.sendIntention(
+                            TimeDashBoardIntention.RefreshRateChanged(
+                                rate = RefreshRate.ONE_MINUTE.rate
+                            )
+                        )
                         true
                     }
 
                     R.id.action_refresh_5_min -> {
                         Log.d(TAG, "refresh 5 min selected")
-                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 5))
+                        viewModel.sendIntention(
+                            TimeDashBoardIntention.RefreshRateChanged(
+                                rate = RefreshRate.FIVE_MINUTES.rate
+                            )
+                        )
                         true
                     }
 
                     R.id.action_refresh_10_min -> {
                         Log.d(TAG, "refresh 10 min selected")
-                        viewModel.sendIntention(TimeDashBoardIntention.RefreshRateChanged(rate = 10))
+                        viewModel.sendIntention(
+                            TimeDashBoardIntention.RefreshRateChanged(
+                                rate = RefreshRate.TEN_MINUTES.rate
+                            )
+                        )
+                        true
+                    }
+
+                    R.id.action_language_en -> {
+                        viewModel.sendIntention(
+                            TimeDashBoardIntention.LanguageChanged(
+                                language = SystemLanguage.EN.code
+                            )
+                        )
+                        true
+                    }
+
+                    R.id.action_language_zh_tw -> {
+                        viewModel.sendIntention(
+                            TimeDashBoardIntention.LanguageChanged(
+                                language = SystemLanguage.ZH_TW.code
+                            )
+                        )
                         true
                     }
 
@@ -158,10 +196,21 @@ class TimeDashBoardFragment : Fragment() {
             is TimeDashBoardViewState.FetchTimeZoneReady ->
                 handleTimeZoneDataReady(data = state.data)
 
-            is TimeDashBoardViewState.GetRefreshRateReady -> {
-                refreshRate = state.data
+            is TimeDashBoardViewState.GetPreferenceCompleted -> {
+                refreshRate = state.rate
+                systemLanguage = state.language
                 activity?.invalidateOptionsMenu()
                 startTimerTask()
+            }
+
+            is TimeDashBoardViewState.LanguageUpdateCompleted -> {
+                systemLanguage = state.language
+                activity?.invalidateOptionsMenu()
+
+                context?.let {
+                    val newLocale = LocaleUtil.getLocale(state.language)
+                    changeLanguage(context = it, newLocale = newLocale)
+                }
             }
 
             is TimeDashBoardViewState.RefreshRateUpdateCompleted -> {
@@ -175,38 +224,75 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
-    private fun handleRefreshRateUpdate(data: Int) {
+    private fun updateActionbarMenuCheckStatus() {
         //reset menu checked status
         actionbarMenu?.apply {
+            //reset refresh rate
             findItem(R.id.action_refresh_1_min).isChecked = false
             findItem(R.id.action_refresh_5_min).isChecked = false
             findItem(R.id.action_refresh_10_min).isChecked = false
+            //reset system language
+            findItem(R.id.action_language_en).isChecked = false
+            findItem(R.id.action_language_zh_tw).isChecked = false
         }
 
-        when (data) {
-            1 -> {
+        when (refreshRate) {
+            RefreshRate.ONE_MINUTE.rate -> {
                 actionbarMenu?.apply {
                     findItem(R.id.action_refresh_1_min).isChecked = true
                 }
             }
 
-            5 -> {
+            RefreshRate.FIVE_MINUTES.rate -> {
                 actionbarMenu?.apply {
                     findItem(R.id.action_refresh_5_min).isChecked = true
                 }
             }
 
-            10 -> {
+            RefreshRate.TEN_MINUTES.rate -> {
                 actionbarMenu?.apply {
                     findItem(R.id.action_refresh_10_min).isChecked = true
+                }
+            }
+        }
+
+        when (systemLanguage) {
+            SystemLanguage.EN.code -> {
+                actionbarMenu?.apply {
+                    findItem(R.id.action_language_en).isChecked = true
+                }
+            }
+
+            SystemLanguage.ZH_TW.code -> {
+                actionbarMenu?.apply {
+                    findItem(R.id.action_language_zh_tw).isChecked = true
                 }
             }
         }
     }
 
     private fun handleViewModelEvent(event: TimeDashBoardEvent) {
-        Log.d(TAG, "handleViewModelEvent: $event")
+        if (event is TimeDashBoardEvent.ErrorOccur) {
+            showErrorDialog(error = event.error)
+        }
+    }
 
+    private fun showErrorDialog(error: SystemError) {
+        context?.let {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(it)
+            builder
+                .setMessage(error.errorMsg)
+                .setTitle(it.resources.getString(R.string.error_occur))
+                .setPositiveButton(it.resources.getString(R.string.retry)) { _, _ ->
+                    getPreference()
+                }
+                .setNegativeButton(it.resources.getString(R.string.close)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
+        }
     }
 
     private fun handleTimeZoneDataReady(data: List<TimeZoneInfo>) {
@@ -257,13 +343,35 @@ class TimeDashBoardFragment : Fragment() {
     }
 
     private fun createFloatingWindow(data: TimeZoneInfo) {
-        // Permission granted, proceed to show the floating window
         val intent = Intent(context, FloatingWindowService::class.java).apply {
-            currentFloatingClockTimeZone = data.timeZone
             putExtra(DATA_BUNDLE_KEY, Gson().toJson(data))
         }
         intent.action = Settings.ACTION_MANAGE_OVERLAY_PERMISSION
         activity?.startForegroundService(intent)
+    }
+
+    private fun setAppLanguage(context: Context, locale: Locale) {
+        context?.let {
+            val context = it
+            val resource = it.resources
+            val metrics = resource.displayMetrics
+            val configuration = resource.configuration
+
+            configuration.setLocale(locale)
+            context.createConfigurationContext(configuration)
+            resource.updateConfiguration(configuration, metrics)
+        }
+    }
+
+    private fun changeLanguage(context: Context, newLocale: Locale = Locale.ROOT) {
+        setAppLanguage(context = context, locale = newLocale)
+        activity?.apply {
+            ActivityCompat.recreate(this)
+        }
+    }
+
+    private fun getAppLocale(context: Context): Locale {
+        return context.resources.configuration.locales[0]
     }
 
     private fun startTimerTask() {
@@ -276,7 +384,7 @@ class TimeDashBoardFragment : Fragment() {
                 Log.d(TAG, "timer task exec")
                 getTimeZones()
             }
-        }, 0, (refreshRate *10* 1000).toLong())
+        }, 0, (refreshRate * 60 * 1000).toLong())
     }
 
     private fun stopTimerTask() {

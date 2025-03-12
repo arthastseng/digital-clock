@@ -9,8 +9,14 @@
     <string name="add">新增</string>
     <string name="edit">編輯</string>
     <string name="delete">刪除</string>
+    <string name="error_occur">錯誤發生</string>
+    <string name="retry">重試</string>
+    <string name="close">關閉</string>
     <!-- refresh rate menu -->
     <string name="menu_refresh_1_min">1 分鐘</string>
     <string name="menu_refresh_5_min">5 分鐘</string>
     <string name="menu_refresh_10_min">10 分鐘</string>
+    <!-- language menu -->
+    <string name="menu_language_en">英文</string>
+    <string name="menu_language_zh_tw">繁體中文</string>
 </resources>

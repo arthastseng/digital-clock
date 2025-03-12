@@ -9,6 +9,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.db.TimeZone
 import com.ssc.android.vs_digital_clock.databinding.FragmentSettingBinding
+import com.ssc.android.vs_digital_clock.network.api.base.SystemError
 import com.ssc.android.vs_digital_clock.presentation.state.SettingEvent
 import com.ssc.android.vs_digital_clock.presentation.state.SettingIntention
 import com.ssc.android.vs_digital_clock.presentation.state.SettingViewState
@@ -144,7 +146,27 @@ class SettingsFragment : Fragment() {
     }
 
     private fun handleViewModelEvent(event: SettingEvent) {
+        if (event is SettingEvent.ErrorOccur) {
+            showErrorDialog(error = event.error)
+        }
+    }
 
+    private fun showErrorDialog(error: SystemError) {
+        context?.let {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(it)
+            builder
+                .setMessage(error.errorMsg)
+                .setTitle(it.resources.getString(R.string.error_occur))
+                .setPositiveButton(it.resources.getString(R.string.retry)) { _, _ ->
+                    viewModel.sendIntention(SettingIntention.FetchTimeZonesFromDB)
+                }
+                .setNegativeButton(it.resources.getString(R.string.close)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
+        }
     }
 
     private fun handleTimeZoneDatabaseDataReady(data: List<TimeZone>) {

@@ -9,8 +9,14 @@
     <string name="add">Add</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
+    <string name="error_occur">Error Occur</string>
+    <string name="retry">Retry</string>
+    <string name="close">Close</string>
     <!-- refresh rate menu -->
     <string name="menu_refresh_1_min">1 Min</string>
     <string name="menu_refresh_5_min">5 Min</string>
     <string name="menu_refresh_10_min">10 Min</string>
+    <!-- language menu -->
+    <string name="menu_language_en">English</string>
+    <string name="menu_language_zh_tw">Traditional Chinese</string>
 </resources>

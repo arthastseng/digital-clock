@@ -41,6 +41,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun changeLanguage(fragment: Fragment) {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        with(fragmentTransaction) {
+            replace(R.id.id_fragment_container, fragment)
+            addToBackStack(null)
+            commit()
+        }
+    }
+
     private fun initUI() {
         replaceFragment(dashBoardFragment)
 

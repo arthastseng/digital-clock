@@ -14,4 +14,12 @@ class PreferenceDataRepositoryImpl @Inject constructor(
     override suspend fun setRefreshRate(rate: Int) {
         dataSource.setRefreshRate(rate = rate)
     }
+
+    override suspend fun getLanguage(): String {
+        return dataSource.getLanguage()
+    }
+
+    override suspend fun setLanguage(language: String) {
+        dataSource.setLanguage(language = language)
+    }
 }

@@ -28,5 +28,19 @@
         android:id="@+id/action_language"
         android:icon="@drawable/ic_language_white"
         android:title="@string/language"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom" >
+
+        <menu>
+            <item
+                android:id="@+id/action_language_en"
+                android:checkable="true"
+                android:title="@string/menu_language_en" />
+            <item
+                android:id="@+id/action_language_zh_tw"
+                android:checkable="true"
+                android:title="@string/menu_language_zh_tw" />
+        </menu>
+
+    </item>
+
 </menu>
