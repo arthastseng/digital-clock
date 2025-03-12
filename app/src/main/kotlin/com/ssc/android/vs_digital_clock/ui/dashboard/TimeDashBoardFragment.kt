@@ -370,10 +370,6 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
-    private fun getAppLocale(context: Context): Locale {
-        return context.resources.configuration.locales[0]
-    }
-
     private fun startTimerTask() {
         if (timer == null) {
             timer = Timer()
