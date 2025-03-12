@@ -12,6 +12,10 @@
     <string name="error_occur">Error Occur</string>
     <string name="retry">Retry</string>
     <string name="close">Close</string>
+    <string name="floating_window_create_hint">Do you want to display this digital clock as a floating window?</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="fetch_available_timezone_error">Get available time zone error, please try again.</string>
     <!-- refresh rate menu -->
     <string name="menu_refresh_1_min">1 Min</string>
     <string name="menu_refresh_5_min">5 Min</string>

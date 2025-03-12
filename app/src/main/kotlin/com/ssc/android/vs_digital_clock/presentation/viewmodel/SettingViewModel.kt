@@ -73,7 +73,7 @@ class SettingViewModel @Inject constructor(
 
                 is FetchAvailableTimeZoneUseCase.Output.Error -> {
                     Log.e(TAG, "fetch time zone error: ${output.error.errorMsg}")
-                    sendAction(SettingAction.ErrorOccur(error = output.error))
+                    sendEvent(SettingEvent.FetchAvailableTimeZoneError)
                 }
             }
         }

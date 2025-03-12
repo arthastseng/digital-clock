@@ -295,6 +295,23 @@ class TimeDashBoardFragment : Fragment() {
         }
     }
 
+    private fun showFloatingWindowCheckDialog(data: TimeZoneInfo) {
+        context?.let {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(it)
+            builder
+                .setMessage(it.resources.getString(R.string.floating_window_create_hint))
+                .setPositiveButton(it.resources.getString(R.string.ok)) { _, _ ->
+                    permissionCheck(data = data)
+                }
+                .setNegativeButton(it.resources.getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+
+            val dialog: AlertDialog = builder.create()
+            dialog.show()
+        }
+    }
+
     private fun handleTimeZoneDataReady(data: List<TimeZoneInfo>) {
         Log.d(TAG, "handleTimeZoneDatabaseDataReady: $data")
         binding.loadingProgress.visibility = View.INVISIBLE
@@ -311,7 +328,7 @@ class TimeDashBoardFragment : Fragment() {
                 setData(it)
                 setOnItemClickListener(object : DigitalClockListAdapter.OnItemClickListener {
                     override fun onItemClick(data: TimeZoneInfo) {
-                        permissionCheck(data = data)
+                        showFloatingWindowCheckDialog(data = data)
                     }
                 })
             }
@@ -325,7 +342,6 @@ class TimeDashBoardFragment : Fragment() {
     }
 
     private fun permissionCheck(data: TimeZoneInfo) {
-        Log.d(TAG, "startFloatingClock: $data")
         context?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (!Settings.canDrawOverlays(it)) {
