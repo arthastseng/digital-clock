@@ -396,7 +396,7 @@ class TimeDashBoardFragment : Fragment() {
                 Log.d(TAG, "timer task exec")
                 getTimeZones()
             }
-        }, 0, (refreshRate * 60 * 1000).toLong())
+        }, 0, (refreshRate * 10 * 1000).toLong())
     }
 
     private fun stopTimerTask() {
