@@ -10,6 +10,7 @@ import com.ssc.android.vs_digital_clock.data.datastore.SystemLanguage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 
 class PreferenceDataSourceImpl @Inject constructor(
@@ -23,8 +24,10 @@ class PreferenceDataSourceImpl @Inject constructor(
     }
 
     override suspend fun setRefreshRate(rate: Int) {
-        dataStore.edit { preference ->
-            preference[PreferencesKeys.KEY_REFRESH_RATE] = rate
+        runBlocking {
+            dataStore.edit { preference ->
+                preference[PreferencesKeys.KEY_REFRESH_RATE] = rate
+            }
         }
     }
 
@@ -34,8 +37,10 @@ class PreferenceDataSourceImpl @Inject constructor(
     }
 
     override suspend fun setLanguage(language: String) {
-        dataStore.edit { preference ->
-            preference[PreferencesKeys.KEY_LANGUAGE] = language
+        runBlocking {
+            dataStore.edit { preference ->
+                preference[PreferencesKeys.KEY_LANGUAGE] = language
+            }
         }
     }
 }
