@@ -36,6 +36,8 @@
         android:textColor="@color/black"
         android:textSize="@dimen/clock_font_size"
         android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/time"
