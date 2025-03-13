@@ -21,8 +21,9 @@ import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -31,6 +32,8 @@ class FloatingWindowService : Service() {
     private lateinit var windowMgr: WindowManager
     private lateinit var floatingView: View
     private var currentTimeZone: String? = null
+    private val serviceJob = Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
     override fun onCreate() {
         super.onCreate()
@@ -63,13 +66,13 @@ class FloatingWindowService : Service() {
         currentTimeZone = timeZoneInfo.timeZone
         createFloatingWindow(data = timeZoneInfo)
 
-        GlobalScope.launch {
+        coroutineScope.launch {
             FloatingWindowUpdateUtil.dataFlow.collect {
                 if (it.isNotEmpty())
                     withContext(Dispatchers.Main) {
                         val data = fetchCurrentTimeZoneData(it)
                         data?.let { newTimeZoneInfo ->
-                            updateDataFromFragment(data = newTimeZoneInfo)
+                            updateData(data = newTimeZoneInfo)
                         }
                     }
             }
@@ -98,8 +101,7 @@ class FloatingWindowService : Service() {
         return null
     }
 
-    // Method to be called by the fragment
-    private fun updateDataFromFragment(data: TimeZoneInfo) {
+    private fun updateData(data: TimeZoneInfo) {
         Log.d(TAG, "updateDataFromFragment : $data")
         floatingView.let {
             val time: TextView = it.findViewById(R.id.time)
@@ -178,6 +180,7 @@ class FloatingWindowService : Service() {
             windowMgr.removeView(floatingView)
             currentTimeZone = null
         }
+        serviceJob.cancel()
     }
 
     companion object {
