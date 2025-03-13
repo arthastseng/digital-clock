@@ -21,7 +21,6 @@ import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.ssc.android.vs_digital_clock.R
 import com.ssc.android.vs_digital_clock.data.TimeZoneInfo
-import java.util.Timer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +34,6 @@ class FloatingWindowService : Service() {
     private var currentTimeZone: String? = null
     private val serviceJob = Job()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + serviceJob)
-    private var timer: Timer? = null
 
     override fun onCreate() {
         super.onCreate()

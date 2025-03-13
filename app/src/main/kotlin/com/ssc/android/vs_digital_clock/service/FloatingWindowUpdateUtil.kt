@@ -13,6 +13,7 @@ object FloatingWindowUpdateUtil {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private val _dataFlow = MutableSharedFlow<List<TimeZoneInfo>>()
     val dataFlow: SharedFlow<List<TimeZoneInfo>> get() = _dataFlow
+
     fun updateData(data: List<TimeZoneInfo>) {
         coroutineScope.launch {
             _dataFlow.emit(data)
